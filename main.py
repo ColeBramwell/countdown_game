@@ -12,13 +12,12 @@ def menu():
     print("|Please select an option:    |")
     print("|----------------------------|")
     print("|1) Play 'Letters round'     |")
-    print("|2) Play 'Conundrum'         |")
-    print("|3) Quit program             |")
+    print("|2) Quit program             |")
     print("|----------------------------|")
 
     choice = input("\nPlease enter a number between 1 and 2: ")
     if choice == "1":
-        generate_letters()
+        letters_game(generate_letters())
     elif choice == "2":
         print("Thanks for playing!")
         return
@@ -27,15 +26,28 @@ def menu():
     menu()
 
 
+def letters_game(letters):
+    """
+    Function handles the main structure for the 'letters round' game
+    """
+    letters_str = ''.join([str(elem) for elem in letters])
+    print("\nYour letters are:\n")
+    print(letters_str, "\n")
+
+
 def generate_letters():
-    vowels = ['a', 'e', 'i', 'o', 'u']
-    consonants = ['b','c','d','f','g','h','j','k','l','m','n','p','q','r','s','t','v','w','x','y','z']
-    given_letters = []
-    for i in range(9):
-        temp = [vowels, consonants][random.random() > 0.3]
-        given_letters.append(temp[random.randint(0, len(temp))-1])
-    print(''.join([str(letter) for letter in given_letters]))
-    return
+    """
+    This function generates a length-9 list of letters, at least 3 vowels and 4 consonants.
+    It samples letters based on their frequency in english (like scrabble)
+    """
+    vowels_list = 'eeeeeeeeeeeeaaaaaaaaaiiiiiiiiioooooooouuuu'
+    consonants_list = 'nnnnnnrrrrrrttttttllllssssddddgggbbccmmppffhhvvwwyykjxqz'
+    n_vowels = random.randint(3,5)
+    vowels = random.sample(vowels_list, n_vowels)
+    consonants = random.sample(vowels_list, 9 - n_vowels)
+    letters = vowels + consonants
+    random.shuffle(letters)
+    return letters
 
 
 intro()
