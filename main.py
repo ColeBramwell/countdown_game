@@ -1,6 +1,32 @@
 import random
 
 
+def intro():
+    print("|----------------------------|")
+    print("| Welcome to the Knockoff of |")
+    print("|        'Countdown'         |")
+
+
+def menu():
+    print("|----------------------------|")
+    print("|Please select an option:    |")
+    print("|----------------------------|")
+    print("|1) Play 'Letters round'     |")
+    print("|2) Play 'Conundrum'         |")
+    print("|3) Quit program             |")
+    print("|----------------------------|")
+
+    choice = input("\nPlease enter a number between 1 and 2: ")
+    if choice == "1":
+        generate_letters()
+    elif choice == "2":
+        print("Thanks for playing!")
+        return
+    else:
+        print("That is not a valid input")
+    menu()
+
+
 def generate_letters():
     vowels = ['a', 'e', 'i', 'o', 'u']
     consonants = ['b','c','d','f','g','h','j','k','l','m','n','p','q','r','s','t','v','w','x','y','z']
@@ -12,5 +38,6 @@ def generate_letters():
     return
 
 
-generate_letters()
+intro()
+menu()
 
