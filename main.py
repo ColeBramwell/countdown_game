@@ -4,26 +4,46 @@ import pickle
 import time
 
 ANSWER_TIME = 5
+ROUND_TIME = 30
+valid_words = pickle.load(open('word_dict.p', 'rb'))
 
 
 def intro():
-    print("|----------------------------|")
+    print("______________________________")
     print("| Welcome to the Knockoff of |")
     print("|        'Countdown'         |")
 
 
+def instructions():
+    print("\nHow to play Countdown's 'Letter Round': ")
+    print("You will be given 9 letters, at least 3 vowels and 4 consonants")
+    print("You will then have 30 seconds to construct the longest word using those letters")
+    print("After the 30 seconds, you will enter the longest word you have found")
+    print("No letter may be used more than it appears, and no proper nouns")
+    print("\nScoring:")
+    print("Words are scored according to how many letters they contain")
+    print("For example, the word 'table' is worth 5 points")
+    print("Any word using all 9 letters scores double (18 points)")
+    print("Your score will be tallied over the 5 rounds")
+    print("\nGood luck!")
+    input("\nPress enter to continue")
+
+
 def menu():
-    print("|----------------------------|")
+    print("______________________________")
     print("|Please select an option:    |")
     print("|----------------------------|")
     print("|1) Play 'Letters round'     |")
-    print("|2) Quit program             |")
-    print("|----------------------------|")
+    print("|2) See instructions         |")
+    print("|3) Quit program             |")
+    print("|____________________________|")
 
-    choice = input("\nPlease enter a number between 1 and 2: ")
+    choice = input("\nPlease enter a number between 1 and 3: ")
     if choice == "1":
         letters_game()
     elif choice == "2":
+        instructions()
+    elif choice == "3":
         print("Thanks for playing!")
         return
     else:
@@ -36,11 +56,10 @@ def letters_game():
     Function handles the main structure for the 'letters round' game
     """
     letters = generate_letters()
-    letters_str = ''.join([str(elem) for elem in letters])
-    print("\nYour letters are:\n")
-    print(letters_str, "\n")
+    letters_str = ''.join(letters)
+    print("\nYour letters are:\n\n{}\n".format(letters_str))
 
-    timer(30, letters_str)
+    timer(ROUND_TIME, letters_str)
     user_ans = timed_input(ANSWER_TIME)
     if user_ans is None:
         print("Sorry, you didn't enter in time")
@@ -48,6 +67,8 @@ def letters_game():
         check_word_valid(letters_str, user_ans)
     if get_choice("Would you like to see the answers? (y/n): ", "y", "n") == "y":
         solve(letters)
+
+    input("\nPress enter to continue")
 
 
 def generate_letters():
@@ -75,7 +96,7 @@ def timed_input(t):
     :return: None if answer is entered after t seconds, otherwise returns answer
     """
     start_time = time.time()
-    user_ans = input("Enter your string - you have {} seconds: ".format(t)).strip().lower()
+    user_ans = input("Enter the longest word you found - you have {} seconds: ".format(t)).strip().lower()
     if time.time() - start_time > t:
         return None
     else:
@@ -97,7 +118,6 @@ def check_word_valid(given_letters, user_str):
             print("That is not a valid combination of letters")
             return
 
-    valid_words = pickle.load(open('word_dict.p', 'rb'))
     sorted_user_str = ''.join(sorted(user_str))
     if sorted_user_str in valid_words:
         if user_str in valid_words[sorted_user_str]:
@@ -116,7 +136,6 @@ def solve(letters):
     :param letters: A string or list of given letters for a round
     :return: N/A
     """
-    valid_words = pickle.load(open('word_dict.p', 'rb'))
     letters = sorted(letters)
     for length in range(3, 10):
         log = set()
@@ -141,6 +160,7 @@ def timer(t, game_txt):
     :param game_txt: Message to be displayed alongside timer
     :return: N/A
     """
+    print("Timer starting...")
     while t:
         mins, secs = divmod(t, 60)
         time_format = '{:02d}:{:02d}'.format(mins, secs)
