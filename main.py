@@ -1,20 +1,31 @@
 import random
-import itertools
+from itertools import combinations
 import pickle
 import time
 from collections import Counter
 
 ANSWER_TIME = 30
-ROUND_TIME = 30
-valid_words = pickle.load(open('word_dict.p', 'rb'))
+
+try:
+    valid_words = pickle.load(open('word_dict.p', 'rb'))
+except FileNotFoundError:
+    print(
+        "No dictionary file found. Please ensure there is a non-empty file called 'word_dict.p' in the same folder as this program")
+    exit()
+except EOFError:
+    print(
+        "The dictionary file is empty. You may have accidently overwritten the file. Please try undoing this action, or redownloading the latest version from GitHub")
+    exit()
 
 
 def intro():
     """
     Runs once, functions as the 'title screen'
+
     :return: None
     """
-    print("Note: All words generated are from an unfiltered dictionary")
+    print("DISCLAIMER: All words generated are from an unfiltered dictionary")
+    print("As such, 'foul language' and slurs may be present.")
     print("______________________________")
     print("| Welcome to the Knockoff of |")
     print("|        'Countdown'         |")
@@ -22,7 +33,8 @@ def intro():
 
 def instructions():
     """
-    Tells the user how to play
+    Tells the user how to play each type of game
+
     :return: None
     """
     print("\nHow to play Countdown's 'Letter Round': ")
@@ -39,6 +51,7 @@ def instructions():
     print("\nHow to play 'Countdown Conundrum': ")
     print("You will be given a phrase, which you must use to create a nine-letter word")
     print("For example, if you are given the phrase 'map casings', you could enter 'campaigns' and win the round")
+    print("Alternate solutions are accepted!")
     print("\nGood luck!")
     input("\nPress enter to continue")
 
@@ -46,6 +59,7 @@ def instructions():
 def menu():
     """
     Directs the user to other functions based on their input
+
     :return: None
     """
     print("______________________________")
@@ -57,15 +71,14 @@ def menu():
     print("|4) Quit program             |")
     print("|____________________________|")
 
-    choice = input("\nPlease enter a number between 1 and 4: ")
-    if choice == "1":
-        num_rounds = get_int()
-        letters_game(num_rounds)
-    elif choice == "2":
+    menu_choice = input("\nPlease enter a number between 1 and 4: ")
+    if menu_choice == "1":
+        letters_game()
+    elif menu_choice == "2":
         conundrum()
-    elif choice == "3":
+    elif menu_choice == "3":
         instructions()
-    elif choice == "4":
+    elif menu_choice == "4":
         print("Thanks for playing!")
         exit()
     else:
@@ -73,11 +86,13 @@ def menu():
     menu()
 
 
-def letters_game(num_rounds):
+def letters_game():
     """
     Function handles the main structure for the 'letters round' game
+
     :return None
     """
+    num_rounds = get_int()
     points = 0
     for game in range(1, num_rounds + 1):
         print("\nYou currently have {} points".format(points))
@@ -86,14 +101,13 @@ def letters_game(num_rounds):
         letters_str = ''.join(letters)
         print("\nYour letters are:\n\n{}\n".format(letters_str))
 
-        # timer(ROUND_TIME, letters_str)
         user_ans = timed_input("Enter the longest word you found", ANSWER_TIME)
         if user_ans is None:
             print("Sorry, you didn't enter in time")
         else:
             points += get_word_points(letters_str, user_ans)
         if get_choice("Would you like to see the answers? (y/n): ", "y", "n") == "y":
-            solve(letters)
+            solve(letters_str)
     print("\nYour final score was {}".format(points))
     print("Your 'points per round' score was {}".format(round(points / num_rounds, 2)))
 
@@ -138,10 +152,7 @@ def get_word_points(given_letters, user_str):
             points = len(user_str)
             print("Nice! Your word '{}' is worth {} points".format(user_str, points))
             return points
-        else:
-            print("Not a valid word, Sorry")
-    else:
-        print("Not a valid word, Sorry")
+    print("Not a valid word, Sorry")
     return 0
 
 
@@ -156,7 +167,7 @@ def solve(letters):
     letters = sorted(letters)
     for length in range(3, 10):
         log = set()
-        for combined_letters in itertools.combinations(letters, length):
+        for combined_letters in combinations(letters, length):
             sorted_word = ''.join(combined_letters)
             if sorted_word in valid_words:
                 for word in valid_words[sorted_word]:
@@ -171,7 +182,7 @@ def solve(letters):
 
 def conundrum():
     """
-    Handles the main structure for the 'conundrum' game
+    Handles game and input structure for the conundrum game
 
     :return: None
     """
@@ -182,20 +193,43 @@ def conundrum():
         anagrams = make_two_anagrams(conundrum_word)
 
     print("\nYour phrase is: '{}'\n".format(anagrams))
-    # timer(ROUND_TIME, anagrams)
-
     user_ans = timed_input("Enter the nine-letter word", ANSWER_TIME)
+    alt_solutions = conundrum_solutions(conundrum_str)
+
     if user_ans is None:
         print("Sorry, you didn't enter in time")
     else:
-        if user_ans == conundrum_word:
+        if user_ans == conundrum_str:
             print("Nice! You got it!")
+        elif user_ans in alt_solutions:
+            print("Nice! You found an alternate solution!")
         else:
             print("That isn't it, sorry")
-            if get_choice("Would you like to see the answer? (y/n): ", "y", "n") == "y":
-                print("\nThe word was: '{}'".format(conundrum_str))
+
+    if get_choice("Would you like to see the answer/s? (y/n): ", "y", "n") == "y":
+        print("\nThe word was: '{}'".format(conundrum_str))
+        if len(alt_solutions) > 0:
+            print("\nThe alternate solutions were:\n")
+            [print(word) for word in alt_solutions]
+        else:
+            print("There are no alternate solutions")
 
     input("\nPress enter to continue")
+
+
+def conundrum_solutions(conundrum_str):
+    """
+    Finds alternate solutions for a conundrum word/letter sequence
+
+    :param conundrum_str: conundrum word to find alternate solutions (anagrams) for
+    :return: list - alternate solutions, not including original word
+    """
+    alt_solutions = []
+    sorted_conundrum_string = ''.join(sorted(conundrum_str))
+    for word in valid_words[sorted_conundrum_string]:
+        if word != conundrum_str:
+            alt_solutions.append(word)
+    return alt_solutions
 
 
 def random_nine_letter():
@@ -224,7 +258,7 @@ def make_two_anagrams(letter_list):
     sorted_word = sorted(letter_list)
     found_anagrams = set()
     for length in range(3, 5):
-        for word in itertools.permutations(letter_list, length):
+        for word in combinations(sorted_word, length):
             word1 = ''.join(word)
             word2 = ''.join(list((Counter(sorted_word) - Counter(
                 word1)).elements()))  # sets word 2 equal to all letters from the word not in word1
@@ -268,24 +302,6 @@ def timed_input(msg, t):
         return user_ans
 
 
-def timer(t, game_txt):
-    """
-    Function to count down from t seconds, mimicking the clock in the game show
-
-    :param t: Seconds to count down from
-    :param game_txt: Message to be displayed alongside timer
-    :return: N/A
-    """
-    print("Timer starting...")
-    while t:
-        mins, secs = divmod(t, 60)
-        time_format = '{:02d}:{:02d}'.format(mins, secs)
-        print(game_txt, "---", time_format)
-        time.sleep(1)
-        t -= 1
-    print("\nTime Up!\n")
-
-
 def get_choice(msg, x, y):
     """
     Ensures that the user response to msg parameter is either x or y. Repeats otherwise.
@@ -305,7 +321,7 @@ def get_choice(msg, x, y):
 
 def get_int():
     """
-    Used to validate a positive integer (rounds floats down). Will repeat if input is a string  or number is < 0
+    Used to validate a positive integer (rounds floats down). Will repeat if input is a string or if the number is < 0
     :return Int - chosen positive integer
     """
     while True:
